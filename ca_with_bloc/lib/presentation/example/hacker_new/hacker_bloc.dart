@@ -25,15 +25,11 @@ class HackerNewsBloc extends Bloc<UserEvent, LoadStoryState> {
       await _loadIds();
       await _loadData();
       print(
-          "hanhmh1203 ReloadEvent LoadedState _currentStoryIndex $_currentStoryIndex");
-      print(
           "hanhmh1203 ReloadEvent LoadedState _topStories size: ${_topStories.length}");
       emit(LoadedState(_topStories));
       _isLoadingMoreTopStories = false;
     });
     on<LoadMoreEvent>((event, emit) async {
-      print(
-          "hanhmh1203 LoadMoreEvent _isLoadingMoreTopStories $_isLoadingMoreTopStories");
       if (_isLoadingMoreTopStories) return;
       _isLoadingMoreTopStories = true;
       await _loadData();
