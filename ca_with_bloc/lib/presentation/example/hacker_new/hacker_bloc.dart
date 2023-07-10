@@ -13,33 +13,36 @@ class HackerNewsBloc extends Bloc<UserEvent, LoadStoryState> {
   final _topStoryIds = List<int>.empty(growable: true);
   final _repository = HackerNewsRepository();
 
+  void _reloadEvent(ReloadEvent event, Emitter<LoadStoryState> emit) async {
+    print("hanhmh1203 ReloadEvent ");
+    if (_isLoadingMoreTopStories) return;
+    _isLoadingMoreTopStories = true;
+    emit(LoadingState());
+    _topStories.clear();
+    await _loadIds();
+    await _loadData();
+    print(
+        "hanhmh1203 ReloadEvent LoadedState _topStories size: ${_topStories.length}");
+    emit(LoadedState(_topStories));
+    _isLoadingMoreTopStories = false;
+  }
+
+  void _loadMoreEvent(LoadMoreEvent event, Emitter<LoadStoryState> emit) async {
+    print("hanhmh1203 LoadMoreEvent ");
+    if (_isLoadingMoreTopStories) return;
+    _isLoadingMoreTopStories = true;
+    await _loadData();
+    print(
+        "hanhmh1203 LoadMoreEvent LoadedState _currentStoryIndex $_currentStoryIndex");
+    print(
+        "hanhmh1203 LoadMoreEvent LoadedState _topStories size: ${_topStories.length}");
+    emit(LoadedState(_topStories));
+    _isLoadingMoreTopStories = false;
+  }
+
   HackerNewsBloc() : super(LoadingState()) {
-    print("hanhmh1203 init HackerNewsBloc");
-    on<ReloadEvent>((event, emit) async {
-      print(
-          "hanhmh1203 ReloadEvent _isLoadingMoreTopStories $_isLoadingMoreTopStories");
-      if (_isLoadingMoreTopStories) return;
-      _isLoadingMoreTopStories = true;
-      emit(LoadingState());
-      _topStories.clear();
-      await _loadIds();
-      await _loadData();
-      print(
-          "hanhmh1203 ReloadEvent LoadedState _topStories size: ${_topStories.length}");
-      emit(LoadedState(_topStories));
-      _isLoadingMoreTopStories = false;
-    });
-    on<LoadMoreEvent>((event, emit) async {
-      if (_isLoadingMoreTopStories) return;
-      _isLoadingMoreTopStories = true;
-      await _loadData();
-      print(
-          "hanhmh1203 LoadMoreEvent LoadedState _currentStoryIndex $_currentStoryIndex");
-      print(
-          "hanhmh1203 LoadMoreEvent LoadedState _topStories size: ${_topStories.length}");
-      emit(LoadedState(_topStories));
-      _isLoadingMoreTopStories = false;
-    });
+    on<ReloadEvent>(_reloadEvent);
+    on<LoadMoreEvent>(_loadMoreEvent);
   }
 
   Future _loadIds() async {
@@ -55,11 +58,10 @@ class HackerNewsBloc extends Bloc<UserEvent, LoadStoryState> {
     }
     _currentStoryIndex = _topStories.length;
   }
+
   static const int PAGE_SIZE = 3;
   var _isLoadingMoreTopStories = false;
   var _currentStoryIndex = 0;
 
-
   final _topStories = List<Story>.empty(growable: true);
-
 }

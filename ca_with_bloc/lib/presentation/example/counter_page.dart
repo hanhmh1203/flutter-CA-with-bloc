@@ -1,11 +1,15 @@
+import 'package:auto_route/annotations.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:ca_with_bloc/presentation/example/hacker_new/story.dart';
 import 'package:ca_with_bloc/presentation/example/hacker_new/user_event.dart';
 import 'package:ca_with_bloc/presentation/theme_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 
 import '../counter_bloc.dart';
 import '../counter_event.dart';
+import '../router/app_router.dart';
 import 'hacker_new/hacker_bloc.dart';
 import 'hacker_new/load_story_state.dart';
 
@@ -13,6 +17,7 @@ import 'hacker_new/load_story_state.dart';
 /// A [StatelessWidget] that:
 /// * provides a [CounterBloc] to the [CounterView].
 /// {@endtemplate}
+@RoutePage()
 class CounterPage extends StatelessWidget {
   /// {@macro counter_page}
   const CounterPage({super.key});
@@ -97,23 +102,28 @@ class CounterView extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.end,
         children: <Widget>[
           FloatingActionButton(
-            child: const Icon(Icons.add),
+            heroTag: "refresh",
+            child: const Icon(Icons.refresh),
             onPressed: () {
               context.read<HackerNewsBloc>().add(ReloadEvent());
             },
           ),
           const SizedBox(height: 4),
           FloatingActionButton(
-            child: const Icon(Icons.remove),
+            heroTag: "loadmore",
+            child: const Icon(Icons.downloading),
             onPressed: () {
               context.read<HackerNewsBloc>().add(LoadMoreEvent());
             },
           ),
           const SizedBox(height: 4),
           FloatingActionButton(
-            child: const Icon(Icons.brightness_6),
+            heroTag: "next",
+            child: const Icon(Icons.navigate_next),
             onPressed: () {
-              context.read<HackerNewsBloc>().add(ReloadEvent());
+              GetIt.instance<AppRouter>().pushNamed("/text_recognizer_view");
+              // AutoRouter.of(context).pushNamed("/login");
+              // context.read<HackerNewsBloc>().add(ReloadEvent());
               // context.read<ThemeCubit>().toggleTheme();
             },
           ),
