@@ -4,12 +4,13 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formz/formz.dart';
 import 'package:get_it/get_it.dart';
+import 'package:injectable/injectable.dart';
 
 import '../../../router/app_router.dart';
 part 'login_event.dart';
 part 'login_state.dart';
 
-
+@Injectable()
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
   LoginBloc() :super(const LoginState()) {
     on<LoginUsernameChanged>(_onUsernameChanged);
