@@ -1,5 +1,5 @@
 import 'package:auto_route/annotations.dart';
-import 'package:ca_with_bloc/presentation/ocr/painter/text_detector_painter.dart';
+import 'package:ca_with_bloc/presentation/ocr/painter/text_recognizer_painter.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
@@ -40,7 +40,8 @@ class _TextRecognizerViewState extends State<TextRecognizerView> {
     );
   }
 
-  Future<void> _processImage(InputImage inputImage) async {
+  Future<void> _processImage(
+      InputImage inputImage, dynamic boxView) async {
     if (!_canProcess) return;
     if (_isBusy) return;
     _isBusy = true;
@@ -50,20 +51,19 @@ class _TextRecognizerViewState extends State<TextRecognizerView> {
     final recognizedText = await _textRecognizer.processImage(inputImage);
     if (inputImage.metadata?.size != null &&
         inputImage.metadata?.rotation != null) {
-      print("recognizedText: ${recognizedText.blocks}");
       final painter = TextRecognizerPainter(
-        recognizedText,
-        inputImage.metadata!.size,
-        inputImage.metadata!.rotation,
-        _cameraLensDirection,
-      );
+          recognizedText,
+          inputImage.metadata!.size,
+          inputImage.metadata!.rotation,
+          _cameraLensDirection,
+          boxView);
       _customPaint = CustomPaint(painter: painter);
     } else {
       _text = 'Recognized text:\n\n${recognizedText.text}';
       // TODO: set _customPaint to draw boundingRect on top of image
       _customPaint = null;
     }
-    // await Future.delayed(Duration(seconds: 2));
+    // await Future.delayed(Duration(seconds: 1));
     _isBusy = false;
     if (mounted) {
       setState(() {});
