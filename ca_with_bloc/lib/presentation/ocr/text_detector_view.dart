@@ -93,7 +93,7 @@ class _TextRecognizerViewState extends State<TextRecognizerView> {
     final recognizedText = await _textRecognizer.processImage(inputImage);
     String result = Platform.isAndroid
         ? DetectorHelper.checkAllBlock(recognizedText)
-        : DetectorHelper.checkInSideBlock(recognizedText, boxView);
+        : DetectorHelper.checkInSideBlock(recognizedText, boxView,isVertical: false);
     if (result.isNotEmpty) {
       _showBottomSheet(context, result);
     } else {

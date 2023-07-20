@@ -22,6 +22,7 @@ class TextRecognizerPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    print("hanhmh1203, canvas size : $size");
     final Paint paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 4.0
@@ -32,7 +33,7 @@ class TextRecognizerPainter extends CustomPainter {
     // _draw(element, size, canvas);
     // var boxViewConverted = _getBoxViewAfterConvert(size);
     canvas.drawRect(
-      box,
+      _getBoxViewAfterConvert(size),
       // Rect.fromLTRB(left, top, right, bottom),
       paint,
     );

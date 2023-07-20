@@ -33,7 +33,7 @@ class CameraView extends StatefulWidget {
 
 class _CameraViewState extends State<CameraView> {
   static List<CameraDescription> _cameras = [];
-  final paddingTop = 100.0;
+  final paddingTop = 0.0;
   final paddingLeft = 0.0;
   final paddingRight = 0.0;
   CameraController? _controller;
@@ -96,22 +96,33 @@ class _CameraViewState extends State<CameraView> {
 
   Widget _liveFeedBody() {
     var width = MediaQuery.of(context).size.width;
+    var height = MediaQuery.of(context).size.height;
     if (_cameras.isEmpty) return Container();
     if (_controller == null) return Container();
     if (_controller?.value.isInitialized == false) return Container();
+    var camH = _controller!.value.previewSize!.height;
+    var camW = _controller!.value.previewSize!.width;
+    print("_liveFeedBody screen size: width: $width height: $height");
+    print("_liveFeedBody cam size: width: $camW height: $camH");
     // correct for IOS
     double aspectRatio = _controller!.value.aspectRatio;
     double cameraViewTop = paddingTop;
     double cameraViewLeft = paddingLeft;
     double cameraViewWidth = width - paddingLeft - paddingRight;
-    double cameraViewHeight = width * aspectRatio;
+    double cameraViewHeight = width;// * aspectRatio;
 
     // set boxView size
+    // horizon view
     double boxViewWidth = cameraViewWidth - cameraViewWidth / 4;
     double boxViewHeight = cameraViewHeight / 8;
+
+    // vertical view
+    // double boxViewWidth = (cameraViewWidth - cameraViewWidth / 4)/8;
+    // double boxViewHeight = cameraViewHeight / 2;
     double boxViewTop = (cameraViewHeight - boxViewHeight) / 2 + paddingTop;
     double boxViewLeft = (cameraViewWidth - boxViewWidth) / 2 + paddingLeft;
-    print("hanhmh1203 _liveFeedBody boxViewHeight: $boxViewHeight");
+    print(
+        "convertRectToRectToCamera boxview before top:${boxViewTop}, left: ${boxViewLeft} ");
     return Container(
       color: Colors.black,
       child: Stack(
@@ -124,6 +135,7 @@ class _CameraViewState extends State<CameraView> {
               : Stack(
                   children: [
                     Positioned(
+                      key: previewKey,
                       top: cameraViewTop,
                       left: cameraViewLeft,
                       width: cameraViewWidth,
@@ -135,7 +147,7 @@ class _CameraViewState extends State<CameraView> {
                             fit: BoxFit.cover,
                             child: SizedBox(
                               width: cameraViewWidth,
-                              height: cameraViewWidth * aspectRatio,
+                              height: cameraViewHeight,
                               // calculate height based on camera aspect ratio
                               child: CameraPreview(
                                 _controller!,
@@ -154,7 +166,7 @@ class _CameraViewState extends State<CameraView> {
                       height: boxViewHeight,
                       child: Container(
                         decoration: BoxDecoration(
-                          border: Border.all(color: Colors.red, width: 2),
+                          border: Border.all(color: Colors.red, width: 1),
                         ),
                       ),
                     ),
@@ -280,99 +292,57 @@ class _CameraViewState extends State<CameraView> {
   Rect? _boxRect;
 
   Rect convertRectToRectToCamera() {
-    // padding top, left, right, bottom
-    // return fromRect;
+    var camH = _controller!.value.previewSize!.height;
+    var camW = _controller!.value.previewSize!.width;
     final RenderBox box =
         boxKey.currentContext?.findRenderObject() as RenderBox;
     final fromRect = box.localToGlobal(Offset.zero) & box.size;
-    final toRect = Rect.fromLTRB(
-        fromRect.left - paddingLeft,
-        fromRect.top - paddingTop,
-        fromRect.right - paddingLeft,
-        fromRect.bottom - paddingTop);
-    print(
-        "hanhmh1203 convertRectToRectToCamera: fromRect ${fromRect?.size.height}");
-    print(
-        "hanhmh1203 convertRectToRectToCamera: toRect ${toRect?.size.height}");
+
+    final RenderBox previewCamera =
+        previewKey.currentContext?.findRenderObject() as RenderBox;
+    final previewCameraRect =
+        previewCamera.localToGlobal(Offset.zero) & previewCamera.size;
+
+    var ratioW = camH / previewCameraRect.width;
+    var ratioH = camW / previewCameraRect.height;
+    var left = (fromRect.left - paddingLeft) * ratioW;
+    var top = (fromRect.top - paddingTop) * ratioH;
+    var right = left + (fromRect.width * ratioW);
+    var bottom = top + (fromRect.height * ratioH);
+    final toRect = Rect.fromLTRB(left, top, right, bottom);
     return toRect;
   }
 
   Rect convertRectToRectToCameraAndroid() {
+    var camH = _controller!.value.previewSize!.height;
+    var camW = _controller!.value.previewSize!.width;
+    // padding top, left, right, bottom
+    // return fromRect;
     final RenderBox box =
-        boxKey.currentContext?.findRenderObject() as RenderBox;
+    boxKey.currentContext?.findRenderObject() as RenderBox;
     final fromRect = box.localToGlobal(Offset.zero) & box.size;
 
-    var width = MediaQuery.of(context).size.width;
-    var height = MediaQuery.of(context).size.height;
-    final croppedRect = box.localToGlobal(Offset.zero) & box.size;
+    final RenderBox previewCamera =
+    previewKey.currentContext?.findRenderObject() as RenderBox;
+    final previewCameraRect =
+    previewCamera.localToGlobal(Offset.zero) & previewCamera.size;
+    // print(
+    //     "convertRectToRectToCamera previewCamera bottom:${previewCameraRect.bottom}, right: ${previewCameraRect.right} ");
+    // print(
+    //     "convertRectToRectToCamera previewCamera width:${previewCameraRect.width}, height: ${previewCameraRect.height} ");
 
-    final RenderBox boxPreview =
-        previewKey.currentContext?.findRenderObject() as RenderBox;
-    final boundRect = boxPreview.localToGlobal(Offset.zero) & boxPreview.size;
-    Size mediaImage = _controller!.value.previewSize!;
-
-    double imageHeight = 0.0;
-    double imageWidth = 0.0;
-    InputImageRotation? rotation = _getRotation();
-    switch (rotation) {
-      case InputImageRotation.rotation90deg:
-      case InputImageRotation.rotation270deg:
-        imageHeight = mediaImage.width;
-        imageWidth = mediaImage.height;
-        break;
-      default:
-        imageHeight = mediaImage.height;
-        imageWidth = mediaImage.width;
-        // Code to handle other rotation values or conditions
-        break;
-    }
-    var wRatio = boundRect.width * 1 / imageWidth;
-    var hRatio = boundRect.height * 1 / imageHeight;
-    var newWidth = croppedRect.width / wRatio;
-    var newHeight = croppedRect.height / hRatio;
-    var newLeft = (croppedRect.left - boundRect.left) / wRatio;
-    var newTop = (croppedRect.top - boundRect.top) / hRatio;
-    Rect result = Rect.fromLTWH(
-        newLeft, newTop, (newLeft + newWidth), (newTop + newHeight));
-    print(
-        "hanhmh1203 convertRectToRectToCameraAndroid \nboxResult:$result ${result.size}");
-    return result;
-    //
-    // // padding top, left, right, bottom
-    // // return fromRect;
-    // var width = MediaQuery.of(context).size.width;
-    // var height = MediaQuery.of(context).size.height;
-    // // var scaleX = height/
-    // var scaleX = height / cameraPreviewWidth;
-    // var scaleY = width / cameraPreviewHeight;
-    //
-    // // var left = scaleY * fromRect.left;
-    // // var right = scaleY * fromRect.right;
-    // // var top = fromRect.top * scaleX;
-    // // var bottom = fromRect.bottom * scaleX;
-    //
-    // var left = translateX2(
-    //     fromRect.bottom, fromRect.size, MediaQuery.of(context).size);
-    // var right = translateX2(
-    //   fromRect.top,
-    //   fromRect.size,
-    //   MediaQuery.of(context).size,
-    // );
-    // var top = translateY2(
-    //   fromRect.right,
-    //   fromRect.size,
-    //   MediaQuery.of(context).size,
-    // );
-    // var bottom = translateY2(
-    //   fromRect.left,
-    //   fromRect.size,
-    //   MediaQuery.of(context).size,
-    // );
-    //
-    // // return Rect.fromLTRB(fromRect.right - paddingLeft, fromRect.bottom - paddingTop,
-    // //     fromRect.left, fromRect.top);
-    // return Rect.fromLTRB(left - paddingLeft, top - paddingTop, right, bottom);
+    var ratioW = camH / previewCameraRect.width;
+    var ratioH = camW / previewCameraRect.height;
+    // print("convertRectToRectToCamera aspectRatio: ratioH${ratioW}");
+    // print("convertRectToRectToCamera aspectRatio:ratioH ${ratioH}");
+    var left = (fromRect.left - paddingLeft) * ratioW;
+    var top = (fromRect.top - paddingTop) * ratioH;
+    var right = left + (fromRect.width * ratioW);
+    var bottom = top + (fromRect.height * ratioH);
+    final toRect = Rect.fromLTRB(left, top, right, bottom);
+    return toRect;
   }
+
 
   Widget _backButton() => Positioned(
         top: 40,
@@ -566,19 +536,13 @@ class _CameraViewState extends State<CameraView> {
           widget.onCameraLensDirectionChanged!(camera.lensDirection);
         }
       });
-      print(
-          "hanhmh1203 _controller!.value.isPreviewPaused:${_controller!.value.isPreviewPaused}");
-      print("hanhmh1203 widget.isPause:${widget.isPause}");
       if (_controller!.value.isPreviewPaused && !widget.isPause) {
-        print("hanhmh1203 resumePreview");
         _controller?.resumePreview();
       }
       if (!_controller!.value.isPreviewPaused && widget.isPause) {
-        print("hanhmh1203 pausePreview");
         _controller?.pausePreview();
       }
       setState(() {
-        print("hanhmh1203 _initialize _customPainter");
         if (Platform.isAndroid) {
           _customPainter = ScanRectPainter(
             scanRect: ScanRectPainter.calculateScanRect(context),
@@ -617,7 +581,6 @@ class _CameraViewState extends State<CameraView> {
       _boxRect ??= convertRectToRectToCameraAndroid();
     } else {
       _boxRect = convertRectToRectToCamera();
-      print("hanhmh1203 _processCameraImage: ${_boxRect?.size.height}");
     }
     widget.onImage(inputImage, _boxRect);
   }
