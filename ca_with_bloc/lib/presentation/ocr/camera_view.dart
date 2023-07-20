@@ -33,7 +33,7 @@ class CameraView extends StatefulWidget {
 
 class _CameraViewState extends State<CameraView> {
   static List<CameraDescription> _cameras = [];
-  final paddingTop = 0.0;
+  final paddingTop = 100.0;
   final paddingLeft = 0.0;
   final paddingRight = 0.0;
   CameraController? _controller;
@@ -52,7 +52,6 @@ class _CameraViewState extends State<CameraView> {
     super.initState();
 
     _initialize();
-
   }
 
   void _initialize() async {
@@ -82,15 +81,17 @@ class _CameraViewState extends State<CameraView> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.isPause) {
-      _controller?.pausePreview();
-    } else {
-      _controller?.resumePreview();
-    }
+    // if (widget.isPause) {
+    //   _controller?.pausePreview();
+    // } else {
+    //   _controller?.resumePreview();
+    // }
+
     if (Platform.isAndroid) {
       return Scaffold(body: _liveFeedBodyAndroid());
+    } else {
+      return Scaffold(body: _liveFeedBody());
     }
-    return Scaffold(body: _liveFeedBody());
   }
 
   Widget _liveFeedBody() {
@@ -103,14 +104,14 @@ class _CameraViewState extends State<CameraView> {
     double cameraViewTop = paddingTop;
     double cameraViewLeft = paddingLeft;
     double cameraViewWidth = width - paddingLeft - paddingRight;
-    double cameraViewHeight = width; //* aspectRatio;
+    double cameraViewHeight = width * aspectRatio;
 
     // set boxView size
     double boxViewWidth = cameraViewWidth - cameraViewWidth / 4;
-    double boxViewHeight = cameraViewHeight / 4;
+    double boxViewHeight = cameraViewHeight / 8;
     double boxViewTop = (cameraViewHeight - boxViewHeight) / 2 + paddingTop;
     double boxViewLeft = (cameraViewWidth - boxViewWidth) / 2 + paddingLeft;
-
+    print("hanhmh1203 _liveFeedBody boxViewHeight: $boxViewHeight");
     return Container(
       color: Colors.black,
       child: Stack(
@@ -275,20 +276,30 @@ class _CameraViewState extends State<CameraView> {
       ),
     );
   }
+
   Rect? _boxRect;
+
   Rect convertRectToRectToCamera() {
     // padding top, left, right, bottom
     // return fromRect;
     final RenderBox box =
-    boxKey.currentContext?.findRenderObject() as RenderBox;
+        boxKey.currentContext?.findRenderObject() as RenderBox;
     final fromRect = box.localToGlobal(Offset.zero) & box.size;
-    return Rect.fromLTRB(fromRect.left - paddingLeft, fromRect.top - paddingTop,
-        fromRect.right, fromRect.bottom);
+    final toRect = Rect.fromLTRB(
+        fromRect.left - paddingLeft,
+        fromRect.top - paddingTop,
+        fromRect.right - paddingLeft,
+        fromRect.bottom - paddingTop);
+    print(
+        "hanhmh1203 convertRectToRectToCamera: fromRect ${fromRect?.size.height}");
+    print(
+        "hanhmh1203 convertRectToRectToCamera: toRect ${toRect?.size.height}");
+    return toRect;
   }
 
   Rect convertRectToRectToCameraAndroid() {
     final RenderBox box =
-    boxKey.currentContext?.findRenderObject() as RenderBox;
+        boxKey.currentContext?.findRenderObject() as RenderBox;
     final fromRect = box.localToGlobal(Offset.zero) & box.size;
 
     var width = MediaQuery.of(context).size.width;
@@ -555,9 +566,20 @@ class _CameraViewState extends State<CameraView> {
           widget.onCameraLensDirectionChanged!(camera.lensDirection);
         }
       });
+      print(
+          "hanhmh1203 _controller!.value.isPreviewPaused:${_controller!.value.isPreviewPaused}");
+      print("hanhmh1203 widget.isPause:${widget.isPause}");
+      if (_controller!.value.isPreviewPaused && !widget.isPause) {
+        print("hanhmh1203 resumePreview");
+        _controller?.resumePreview();
+      }
+      if (!_controller!.value.isPreviewPaused && widget.isPause) {
+        print("hanhmh1203 pausePreview");
+        _controller?.pausePreview();
+      }
       setState(() {
         print("hanhmh1203 _initialize _customPainter");
-        if(Platform.isAndroid){
+        if (Platform.isAndroid) {
           _customPainter = ScanRectPainter(
             scanRect: ScanRectPainter.calculateScanRect(context),
           );
@@ -594,7 +616,8 @@ class _CameraViewState extends State<CameraView> {
     if (Platform.isAndroid) {
       _boxRect ??= convertRectToRectToCameraAndroid();
     } else {
-      _boxRect ??= convertRectToRectToCamera();
+      _boxRect = convertRectToRectToCamera();
+      print("hanhmh1203 _processCameraImage: ${_boxRect?.size.height}");
     }
     widget.onImage(inputImage, _boxRect);
   }
