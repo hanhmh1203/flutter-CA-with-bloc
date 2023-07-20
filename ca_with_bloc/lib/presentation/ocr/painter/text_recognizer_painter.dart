@@ -1,7 +1,9 @@
 import 'dart:io';
+import 'dart:math';
 import 'dart:ui';
 import 'dart:ui' as ui;
 
+import 'package:ca_with_bloc/presentation/ocr/detector_helper.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
@@ -18,36 +20,78 @@ class TextRecognizerPainter extends CustomPainter {
   final InputImageRotation rotation;
   final CameraLensDirection cameraLensDirection;
 
-  bool _isPointWithinBoxView(List<Offset> listOffset) {
-    var boxRect = boxView as Rect;
-    for (var off in listOffset) {
-      if (boxRect!.contains(off)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-
-
   @override
   void paint(Canvas canvas, Size size) {
-    for (final textBlock in recognizedText.blocks) {
-      // if(customPainter== null) return;
-      for (final line in textBlock.lines) {
-        List<Offset> offSets = textBlock.cornerPoints
-            .map((e) => Offset(e.x.toDouble(), e.y.toDouble()))
-            .toList();
-        if (_isPointWithinBoxView(offSets)) _draw(textBlock, size, canvas);
+    final Paint paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4.0
+      ..color = Colors.yellow;
+    // paint.color = Colors.yellow;
+    final Paint background = Paint()..color = Color(0x99000000);
+    var box = boxView as Rect;
+    // _draw(element, size, canvas);
+    // var boxViewConverted = _getBoxViewAfterConvert(size);
+    canvas.drawRect(
+      box,
+      // Rect.fromLTRB(left, top, right, bottom),
+      paint,
+    );
+
+    print("hanhmh1203 paint canvas:width ${size.width}, height:${size.height}");
+    for (var block in recognizedText.blocks) {
+      for (var line in block.lines) {
+        for (var element in line.elements) {
+          List<Offset> offSets = element.cornerPoints
+              .map((e) => Offset(e.x.toDouble(), e.y.toDouble()))
+              .toList();
+
+          if (DetectorHelper.isPointWithinBoxView(offSets, box)) {
+            _draw(element, size, canvas);
+          }
+        }
       }
-      // }
     }
   }
 
-  _draw(TextBlock textBlock, Size size, Canvas canvas) {
+  Rect _getBoxViewAfterConvert(Size canvasSize) {
+    var box = boxView as Rect;
+    // return box;
+    var left = translateX(
+      box.left,
+      canvasSize,
+      imageSize,
+      rotation,
+      cameraLensDirection,
+    );
+    var top = translateY(
+      box.top,
+      canvasSize,
+      imageSize,
+      rotation,
+      cameraLensDirection,
+    );
+    var right = translateX(
+      box.right,
+      canvasSize,
+      imageSize,
+      rotation,
+      cameraLensDirection,
+    );
+    var bottom = translateY(
+      box.bottom,
+      canvasSize,
+      imageSize,
+      rotation,
+      cameraLensDirection,
+    );
+
+    return Rect.fromLTRB(left, top, right, bottom);
+  }
+
+  _draw(dynamic textBlock, Size size, Canvas canvas) {
     final Paint paint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0
+      ..strokeWidth = 4.0
       ..color = Colors.yellow;
     // paint.color = Colors.yellow;
     final Paint background = Paint()..color = Color(0x99000000);
@@ -92,8 +136,10 @@ class TextRecognizerPainter extends CustomPainter {
       cameraLensDirection,
     );
     //
+    // print("hanhmh1203 boxRect:")
     // canvas.drawRect(
-    //   Rect.fromLTRB(left, top, right, bottom),
+    //   _getBoxViewAfterConvert(size),
+    //   // Rect.fromLTRB(left, top, right, bottom),
     //   paint,
     // );
     final List<Offset> cornerPoints = <Offset>[];
@@ -112,8 +158,6 @@ class TextRecognizerPainter extends CustomPainter {
         rotation,
         cameraLensDirection,
       );
-      // double x = point.x.toDouble();
-      // double y = point.y.toDouble();
       if (Platform.isAndroid) {
         switch (cameraLensDirection) {
           case CameraLensDirection.front:
@@ -182,9 +226,7 @@ class TextRecognizerPainter extends CustomPainter {
 
     // Add the first point to close the polygon
     cornerPoints.add(cornerPoints.first);
-    // if (_isPointWithinBoxView(cornerPoints)) {
     canvas.drawPoints(PointMode.polygon, cornerPoints, paint);
-    // }
 
     canvas.drawParagraph(
       builder.build()

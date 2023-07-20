@@ -5,12 +5,12 @@ import 'package:camera/camera.dart';
 import 'package:google_mlkit_commons/google_mlkit_commons.dart';
 
 double translateX(
-    double x,
-    Size canvasSize,
-    Size imageSize,
-    InputImageRotation rotation,
-    CameraLensDirection cameraLensDirection,
-    ) {
+  double x,
+  Size canvasSize,
+  Size imageSize,
+  InputImageRotation rotation,
+  CameraLensDirection cameraLensDirection,
+) {
   switch (rotation) {
     case InputImageRotation.rotation90deg:
       return x *
@@ -33,12 +33,12 @@ double translateX(
 }
 
 double translateY(
-    double y,
-    Size canvasSize,
-    Size imageSize,
-    InputImageRotation rotation,
-    CameraLensDirection cameraLensDirection,
-    ) {
+  double y,
+  Size canvasSize,
+  Size imageSize,
+  InputImageRotation rotation,
+  CameraLensDirection cameraLensDirection,
+) {
   switch (rotation) {
     case InputImageRotation.rotation90deg:
     case InputImageRotation.rotation270deg:
@@ -49,4 +49,16 @@ double translateY(
     case InputImageRotation.rotation180deg:
       return y * canvasSize.height / imageSize.height;
   }
+}
+
+double translateX2(double x, Size boxView, Size screenSize) {
+  return x *
+      boxView.width /
+      (Platform.isIOS ? screenSize.width : screenSize.height);
+}
+
+double translateY2(double y, Size boxView, Size screenSize) {
+  return y *
+      boxView.height /
+      (Platform.isIOS ? screenSize.height : screenSize.width);
 }

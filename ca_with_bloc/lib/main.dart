@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:ca_with_bloc/presentation/counter_bloc.dart';
 import 'package:ca_with_bloc/presentation/counter_event.dart';
 import 'package:ca_with_bloc/presentation/example/counter_page.dart';
@@ -13,6 +15,7 @@ void main() {
   getIt.registerSingleton<AppRouter>(AppRouter());
 
   Bloc.observer = const AppBlocObserver();
+
   runApp(const MyApp());
 }
 

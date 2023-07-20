@@ -24,6 +24,10 @@ class CounterPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var width = MediaQuery.of(context).size.width;
+    var height = MediaQuery.of(context).size.height;
+    print(
+        "hanhmh1203 CounterPage scrren size width:$width, height: ${height}");
     return MultiBlocProvider(
       providers: [
         BlocProvider<CounterBloc>(
@@ -63,38 +67,38 @@ class CounterView extends StatelessWidget {
             ),
           ),
           Center(
-            child: BlocBuilder<HackerNewsBloc,LoadStoryState>(
-                buildWhen: (previousState, currentState) {
-                  return true; // Always trigger a rebuild
-                },
-                builder: (context, state){
-                  if(state is LoadingState){
-                    return Text("loading");
-                  }
-                  if(state is LoadedState){
-                    print("hanhmh1203 BlocBuilder state.props.length ${state.props.length}");
-                      return SizedBox(
-                        height: 300,
-                        child: ListView.builder(
-                          itemCount: state.props.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            final item = state.props[index];
-                            return ListTile(
-                              title: Text('Number: ${item.id}'),
-                              subtitle: Text(item.author),
-                            );
-                          },
-                        ),
-                      );
-                  }
-                  if(state is ErrorState){
-                    return Text("error");
-                  }
-                  return Text("unknow");
-                },
+            child: BlocBuilder<HackerNewsBloc, LoadStoryState>(
+              buildWhen: (previousState, currentState) {
+                return true; // Always trigger a rebuild
+              },
+              builder: (context, state) {
+                if (state is LoadingState) {
+                  return Text("loading");
+                }
+                if (state is LoadedState) {
+                  print(
+                      "hanhmh1203 BlocBuilder state.props.length ${state.props.length}");
+                  return SizedBox(
+                    height: 300,
+                    child: ListView.builder(
+                      itemCount: state.props.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        final item = state.props[index];
+                        return ListTile(
+                          title: Text('Number: ${item.id}'),
+                          subtitle: Text(item.author),
+                        );
+                      },
+                    ),
+                  );
+                }
+                if (state is ErrorState) {
+                  return Text("error");
+                }
+                return Text("unknow");
+              },
             ),
           ),
-
         ],
       ),
       floatingActionButton: Column(
