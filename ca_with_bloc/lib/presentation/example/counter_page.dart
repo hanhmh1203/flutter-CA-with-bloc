@@ -26,8 +26,7 @@ class CounterPage extends StatelessWidget {
   Widget build(BuildContext context) {
     var width = MediaQuery.of(context).size.width;
     var height = MediaQuery.of(context).size.height;
-    print(
-        "hanhmh1203 CounterPage scrren size width:$width, height: ${height}");
+    print("hanhmh1203 CounterPage scrren size width:$width, height: ${height}");
     return MultiBlocProvider(
       providers: [
         BlocProvider<CounterBloc>(
@@ -52,6 +51,30 @@ class CounterView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          "Optical Character Recognition",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+      body: Center(
+        child: ElevatedButton(
+          child: Text(
+            "Open",
+            style: TextStyle(fontSize: 24),
+          ),
+          onPressed: () {
+            GetIt.instance<AppRouter>().pushNamed(AppRouter.pathRecognizerView);
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _couterPage(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Counter')),
       body: Column(
@@ -125,7 +148,7 @@ class CounterView extends StatelessWidget {
             heroTag: "next",
             child: const Icon(Icons.navigate_next),
             onPressed: () {
-              GetIt.instance<AppRouter>().pushNamed("/text_recognizer_view");
+              GetIt.instance<AppRouter>().pushNamed(AppRouter.pathRecognizerView);
               // AutoRouter.of(context).pushNamed("/login");
               // context.read<HackerNewsBloc>().add(ReloadEvent());
               // context.read<ThemeCubit>().toggleTheme();

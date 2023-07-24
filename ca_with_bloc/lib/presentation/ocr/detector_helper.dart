@@ -11,7 +11,14 @@ class DetectorHelper {
     }
     return false;
   }
-
+  static bool isPointAllWithinBoxView(List<Offset> listOffset, Rect boxView) {
+    for (var off in listOffset) {
+      if (!boxView.contains(off)) {
+        return false;
+      }
+    }
+    return true;
+  }
   static showLog(String logStr, {bool showLog = false}) {
     if (showLog) {
       print(logStr);
@@ -67,7 +74,9 @@ class DetectorHelper {
   static String _checkInSideBlockVertical(
       RecognizedText recognizedText, Rect boxView,
       {bool isShowLog = true}) {
-    // showLog("_checkInSideBlockVertical recognizedText " + recognizedText.text.replaceAll("\n", " "), showLog: isShowLog);
+    String text = recognizedText.text.replaceAll("\n", " ");
+    // showLog("_checkInSideBlockVertical recognizedText $text",
+    //     showLog: isShowLog);
     List<TextBlock> blocksInside = recognizedText.blocks
         .map((bl) {
           List<Offset> offSets = bl.cornerPoints
@@ -77,15 +86,28 @@ class DetectorHelper {
         })
         .whereType<TextBlock>()
         .toList();
+    List<TextLine> lines= [];
+    for (var block in blocksInside){
+      List<TextLine> linesInside = block.lines
+          .map((line) {
+        List<Offset> offSets = line.cornerPoints
+            .map((e) => Offset(e.x.toDouble(), e.y.toDouble()))
+            .toList();
+        return isPointWithinBoxView(offSets, boxView) ? line : null;
+      })
+          .whereType<TextLine>()
+          .toList();
+      lines.addAll(linesInside);
+    }
     // showLog("_checkInSideBlockVertical blocksInsideString" + blocksInside.toString(), showLog: isShowLog);
     String blocksInsideString = '';
-    for (var block in blocksInside) {
-      blocksInsideString += block.text.replaceAll("\n", "");
+    for (var block in lines) {
+      blocksInsideString += "\n ${block.text}";
     }
 
     showLog("_checkInSideBlockVertical blocksInsideString: " + blocksInsideString,
         showLog: isShowLog);
-    if(blocksInside.length<11) return "";
+    if (blocksInside.length < 11) return "";
     // RegExp regExp = new RegExp(r'[A-Z]{4}\s*[0-9]{6}\s*[0-9]{1}');
     RegExp regExp = new RegExp(r'[A-Z]{3}[UJZ]{1}\s*[0-9]{6}\s*[0-9]{1}');
     Iterable<RegExpMatch> matches = regExp.allMatches(blocksInsideString);

@@ -7,17 +7,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image_cropper/image_cropper.dart';
-
+part 'android.dart';
+part 'ios.dart';
 class CameraView extends StatefulWidget {
-  CameraView(
-      {Key? key,
-      required this.customPaint,
-      required this.onImage,
-      required this.isPause,
-      this.onCameraFeedReady,
-      this.onDetectorViewModeChanged,
-      this.onCameraLensDirectionChanged,
-      this.initialCameraLensDirection = CameraLensDirection.back})
+  CameraView({Key? key,
+    required this.customPaint,
+    required this.onImage,
+    required this.isPause,
+    this.onCameraFeedReady,
+    this.onDetectorViewModeChanged,
+    this.onCameraLensDirectionChanged,
+    this.initialCameraLensDirection = CameraLensDirection.back})
       : super(key: key);
   final bool isPause;
   final CustomPaint? customPaint;
@@ -81,48 +81,38 @@ class _CameraViewState extends State<CameraView> {
 
   @override
   Widget build(BuildContext context) {
-    // if (widget.isPause) {
-    //   _controller?.pausePreview();
-    // } else {
-    //   _controller?.resumePreview();
-    // }
-
-    if (Platform.isAndroid) {
-      return Scaffold(body: _liveFeedBodyAndroid());
-    } else {
-      return Scaffold(body: _liveFeedBody());
-    }
+    return Scaffold(body: _liveFeedBody());
   }
 
   Widget _liveFeedBody() {
-    var width = MediaQuery.of(context).size.width;
-    var height = MediaQuery.of(context).size.height;
+    var width = MediaQuery
+        .of(context)
+        .size
+        .width;
+    var height = MediaQuery
+        .of(context)
+        .size
+        .height;
     if (_cameras.isEmpty) return Container();
     if (_controller == null) return Container();
     if (_controller?.value.isInitialized == false) return Container();
-    var camH = _controller!.value.previewSize!.height;
-    var camW = _controller!.value.previewSize!.width;
-    print("_liveFeedBody screen size: width: $width height: $height");
-    print("_liveFeedBody cam size: width: $camW height: $camH");
     // correct for IOS
     double aspectRatio = _controller!.value.aspectRatio;
     double cameraViewTop = paddingTop;
     double cameraViewLeft = paddingLeft;
     double cameraViewWidth = width - paddingLeft - paddingRight;
-    double cameraViewHeight = width;// * aspectRatio;
+    double cameraViewHeight = width * aspectRatio;
 
     // set boxView size
     // horizon view
     double boxViewWidth = cameraViewWidth - cameraViewWidth / 4;
-    double boxViewHeight = cameraViewHeight / 8;
+    double boxViewHeight = cameraViewHeight / 4;
 
     // vertical view
     // double boxViewWidth = (cameraViewWidth - cameraViewWidth / 4)/8;
     // double boxViewHeight = cameraViewHeight / 2;
     double boxViewTop = (cameraViewHeight - boxViewHeight) / 2 + paddingTop;
     double boxViewLeft = (cameraViewWidth - boxViewWidth) / 2 + paddingLeft;
-    print(
-        "convertRectToRectToCamera boxview before top:${boxViewTop}, left: ${boxViewLeft} ");
     return Container(
       color: Colors.black,
       child: Stack(
@@ -130,160 +120,55 @@ class _CameraViewState extends State<CameraView> {
         children: <Widget>[
           _changingCameraLens
               ? Center(
-                  child: const Text('Changing camera lens'),
-                )
+            child: const Text('Changing camera lens'),
+          )
               : Stack(
-                  children: [
-                    Positioned(
-                      key: previewKey,
-                      top: cameraViewTop,
-                      left: cameraViewLeft,
-                      width: cameraViewWidth,
-                      height: cameraViewHeight,
-                      child: ClipRect(
-                        child: OverflowBox(
-                          alignment: Alignment.center,
-                          child: FittedBox(
-                            fit: BoxFit.cover,
-                            child: SizedBox(
-                              width: cameraViewWidth,
-                              height: cameraViewHeight,
-                              // calculate height based on camera aspect ratio
-                              child: CameraPreview(
-                                _controller!,
-                                child: widget.customPaint,
-                              ),
-                            ),
-                          ),
+            children: [
+              Positioned(
+                key: previewKey,
+                top: cameraViewTop,
+                left: cameraViewLeft,
+                width: cameraViewWidth,
+                height: cameraViewHeight,
+                child: ClipRect(
+                  child: OverflowBox(
+                    alignment: Alignment.center,
+                    child: FittedBox(
+                      fit: BoxFit.cover,
+                      child: SizedBox(
+                        width: cameraViewWidth,
+                        height: cameraViewHeight,
+                        // calculate height based on camera aspect ratio
+                        child: CameraPreview(
+                          _controller!,
+                          child: widget.customPaint,
                         ),
                       ),
                     ),
-                    Positioned(
-                      key: boxKey,
-                      top: boxViewTop,
-                      left: boxViewLeft,
-                      width: boxViewWidth,
-                      height: boxViewHeight,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.red, width: 1),
-                        ),
-                      ),
-                    ),
-                    // SizedBox(
-                    //   child: CustomPaint(
-                    //     painter: _customPainter,
-                    //   ),
-                    // )
-                  ],
+                  ),
                 ),
-          _backButton(),
-          _switchLiveCameraToggle(),
-          _detectionViewModeToggle(),
-          _zoomControl(),
-          _exposureControl(),
-        ],
-      ),
-    );
-  }
-
-  late double cameraViewWidth;
-  late double cameraViewHeight;
-  late double cameraPreviewWidth;
-  late double cameraPreviewHeight;
-
-  late double boxViewWidth;
-  late double boxViewHeight;
-  late double boxViewTop;
-  late double boxViewLeft;
-
-  Widget _liveFeedBodyAndroid() {
-    var width = MediaQuery.of(context).size.width;
-    var height = MediaQuery.of(context).size.height;
-    if (_cameras.isEmpty) return Container();
-    if (_controller == null) return Container();
-    if (_controller?.value.isInitialized == false) return Container();
-    // correct for IOS
-    double aspectRatio = _controller!.value.aspectRatio;
-    print(
-        "hanhmh1203 _liveFeedBodyAndroid scrren size width:$width, height: ${height}");
-    print("hanhmh1203 aspectRatio:$aspectRatio");
-    print("hanhmh1203 camera width ${_controller!.value.previewSize!.width}");
-    print("hanhmh1203 camera height ${_controller!.value.previewSize!.height}");
-    double cameraViewTop = paddingTop;
-    double cameraViewLeft = paddingLeft;
-    // double cameraViewWidth = width - paddingLeft - paddingRight;
-    // double cameraViewHeight = width * aspectRatio;
-    cameraViewWidth = _controller!.value.previewSize!.height;
-    cameraViewHeight = _controller!.value.previewSize!.width;
-    cameraPreviewWidth = cameraViewWidth;
-    cameraPreviewHeight = cameraViewHeight;
-
-    // set boxView size
-    boxViewWidth = cameraViewWidth - cameraViewWidth / 2;
-    boxViewHeight = cameraViewHeight / 4;
-    boxViewTop = (cameraViewHeight - boxViewHeight) / 2 + paddingTop;
-    boxViewLeft = (cameraViewWidth - boxViewWidth) / 2 + paddingLeft;
-
-    return Container(
-      color: Colors.black,
-      child: Stack(
-        fit: StackFit.expand,
-        children: <Widget>[
-          _changingCameraLens
-              ? Center(
-                  child: const Text('Changing camera lens'),
-                )
-              : Stack(
-                  children: [
-                    Positioned(
-                      top: cameraViewTop,
-                      left: cameraViewLeft,
-                      width: cameraViewWidth,
-                      height: cameraViewHeight,
-                      child: ClipRect(
-                        child: OverflowBox(
-                          alignment: Alignment.center,
-                          child: FittedBox(
-                            fit: BoxFit.cover,
-                            child: SizedBox(
-                              key: previewKey,
-                              width: cameraPreviewWidth,
-                              height: cameraPreviewHeight,
-                              // calculate height based on camera aspect ratio
-                              child: CameraPreview(
-                                _controller!,
-                                child: widget.customPaint,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      key: boxKey,
-                      top: boxViewTop,
-                      left: boxViewLeft,
-                      width: boxViewWidth,
-                      height: boxViewHeight,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.red, width: 2),
-                        ),
-                      ),
-                    ),
-                    // SizedBox(
-                    //   child: CustomPaint(
-                    //     painter: _customPainter,
-                    //   ),
-                    // )
-                  ],
+              ),
+              Positioned(
+                key: boxKey,
+                top: boxViewTop,
+                left: boxViewLeft,
+                width: boxViewWidth,
+                height: boxViewHeight,
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.yellow, width: 4),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  // Other child widgets here
                 ),
+              ),
+            ],
+          ),
           _backButton(),
-          _switchLiveCameraToggle(),
-          _detectionViewModeToggle(),
+          // _switchLiveCameraToggle(),
+          // _detectionViewModeToggle(),
           _zoomControl(),
-          _exposureControl(),
+          // _exposureControl(),
         ],
       ),
     );
@@ -292,59 +177,33 @@ class _CameraViewState extends State<CameraView> {
   Rect? _boxRect;
 
   Rect convertRectToRectToCamera() {
-    var camH = _controller!.value.previewSize!.height;
-    var camW = _controller!.value.previewSize!.width;
-    final RenderBox box =
-        boxKey.currentContext?.findRenderObject() as RenderBox;
-    final fromRect = box.localToGlobal(Offset.zero) & box.size;
-
-    final RenderBox previewCamera =
-        previewKey.currentContext?.findRenderObject() as RenderBox;
-    final previewCameraRect =
-        previewCamera.localToGlobal(Offset.zero) & previewCamera.size;
-
-    var ratioW = camH / previewCameraRect.width;
-    var ratioH = camW / previewCameraRect.height;
-    var left = (fromRect.left - paddingLeft) * ratioW;
-    var top = (fromRect.top - paddingTop) * ratioH;
-    var right = left + (fromRect.width * ratioW);
-    var bottom = top + (fromRect.height * ratioH);
-    final toRect = Rect.fromLTRB(left, top, right, bottom);
-    return toRect;
-  }
-
-  Rect convertRectToRectToCameraAndroid() {
-    var camH = _controller!.value.previewSize!.height;
-    var camW = _controller!.value.previewSize!.width;
-    // padding top, left, right, bottom
-    // return fromRect;
+    Size previewSize = _controller!.value.previewSize!;
     final RenderBox box =
     boxKey.currentContext?.findRenderObject() as RenderBox;
     final fromRect = box.localToGlobal(Offset.zero) & box.size;
 
     final RenderBox previewCamera =
     previewKey.currentContext?.findRenderObject() as RenderBox;
-    final previewCameraRect =
+    final rectCameraView =
     previewCamera.localToGlobal(Offset.zero) & previewCamera.size;
-    // print(
-    //     "convertRectToRectToCamera previewCamera bottom:${previewCameraRect.bottom}, right: ${previewCameraRect.right} ");
-    // print(
-    //     "convertRectToRectToCamera previewCamera width:${previewCameraRect.width}, height: ${previewCameraRect.height} ");
 
-    var ratioW = camH / previewCameraRect.width;
-    var ratioH = camW / previewCameraRect.height;
-    // print("convertRectToRectToCamera aspectRatio: ratioH${ratioW}");
-    // print("convertRectToRectToCamera aspectRatio:ratioH ${ratioH}");
-    var left = (fromRect.left - paddingLeft) * ratioW;
-    var top = (fromRect.top - paddingTop) * ratioH;
-    var right = left + (fromRect.width * ratioW);
-    var bottom = top + (fromRect.height * ratioH);
+    var ratioW = previewSize.height / rectCameraView.width;
+    var ratioH = previewSize.width / rectCameraView.height;
+
+    var ratioW2 = getRatioX(previewSize, rectCameraView.size, _getRotation()!);
+    var ratioH2 = getRatioY(previewSize, rectCameraView.size, _getRotation()!);
+
+    var left = (fromRect.left - paddingLeft) * ratioW2;
+    var top = (fromRect.top - paddingTop) * ratioH2;
+    var right = left + (fromRect.width * ratioW2);
+    var bottom = top + (fromRect.height * ratioH2);
     final toRect = Rect.fromLTRB(left, top, right, bottom);
     return toRect;
   }
 
 
-  Widget _backButton() => Positioned(
+  Widget _backButton() =>
+      Positioned(
         top: 40,
         left: 8,
         child: SizedBox(
@@ -362,7 +221,8 @@ class _CameraViewState extends State<CameraView> {
         ),
       );
 
-  Widget _detectionViewModeToggle() => Positioned(
+  Widget _detectionViewModeToggle() =>
+      Positioned(
         bottom: 8,
         left: 8,
         child: SizedBox(
@@ -380,7 +240,8 @@ class _CameraViewState extends State<CameraView> {
         ),
       );
 
-  Widget _switchLiveCameraToggle() => Positioned(
+  Widget _switchLiveCameraToggle() =>
+      Positioned(
         bottom: 8,
         right: 8,
         child: SizedBox(
@@ -400,7 +261,8 @@ class _CameraViewState extends State<CameraView> {
         ),
       );
 
-  Widget _zoomControl() => Positioned(
+  Widget _zoomControl() =>
+      Positioned(
         bottom: 16,
         left: 0,
         right: 0,
@@ -449,7 +311,8 @@ class _CameraViewState extends State<CameraView> {
         ),
       );
 
-  Widget _exposureControl() => Positioned(
+  Widget _exposureControl() =>
+      Positioned(
         top: 40,
         right: 8,
         child: ConstrainedBox(
@@ -567,20 +430,14 @@ class _CameraViewState extends State<CameraView> {
     setState(() => _changingCameraLens = false);
   }
 
-  static Future<File> writeUint8ListToFile(
-      String filePath, Uint8List bytes) async {
-    var file = File(filePath);
-    if (await file.exists()) await file.delete();
-    return file.writeAsBytes(bytes);
-  }
 
   Future<void> _processCameraImage(CameraImage image) async {
     final inputImage = _inputImageFromCameraImage(image);
     if (inputImage == null) return;
     if (Platform.isAndroid) {
-      _boxRect ??= convertRectToRectToCameraAndroid();
+      _boxRect ??= convertRectToRectToCamera();
     } else {
-      _boxRect = convertRectToRectToCamera();
+      _boxRect ??= convertRectToRectToCamera();
     }
     widget.onImage(inputImage, _boxRect);
   }
@@ -636,7 +493,7 @@ class _CameraViewState extends State<CameraView> {
     final camera = _cameras[_cameraIndex];
     final sensorOrientation = camera.sensorOrientation;
     var rotationCompensation =
-        _orientations[_controller!.value.deviceOrientation];
+    _orientations[_controller!.value.deviceOrientation];
     if (rotationCompensation == null) return null;
     if (camera.lensDirection == CameraLensDirection.front) {
       // front-facing

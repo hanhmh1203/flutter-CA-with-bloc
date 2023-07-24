@@ -25,10 +25,9 @@ class TextRecognizerPainter extends CustomPainter {
     print("hanhmh1203, canvas size : $size");
     final Paint paint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 4.0
-      ..color = Colors.yellow;
+      ..strokeWidth = 2.0
+      ..color = Colors.red;
     // paint.color = Colors.yellow;
-    final Paint background = Paint()..color = Color(0x99000000);
     var box = boxView as Rect;
     // _draw(element, size, canvas);
     // var boxViewConverted = _getBoxViewAfterConvert(size);
@@ -41,15 +40,15 @@ class TextRecognizerPainter extends CustomPainter {
     print("hanhmh1203 paint canvas:width ${size.width}, height:${size.height}");
     for (var block in recognizedText.blocks) {
       for (var line in block.lines) {
-        for (var element in line.elements) {
-          List<Offset> offSets = element.cornerPoints
+        // for (var element in line.elements) {
+          List<Offset> offSets = line.cornerPoints
               .map((e) => Offset(e.x.toDouble(), e.y.toDouble()))
               .toList();
 
           if (DetectorHelper.isPointWithinBoxView(offSets, box)) {
-            _draw(element, size, canvas);
+            _draw(line, size, canvas);
           }
-        }
+        // }
       }
     }
   }

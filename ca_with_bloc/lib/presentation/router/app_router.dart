@@ -6,11 +6,12 @@ import 'app_router.gr.dart';
 
 @AutoRouterConfig()
 class AppRouter extends $AppRouter {
+  static String pathRecognizerView = "/text_recognizer_view";
   @override
   List<AutoRoute> get routes {
     return [
       AutoRoute(
-          path: "/text_recognizer_view",
+          path: pathRecognizerView,
           page: TextRecognizerView.page,
           ),
       AutoRoute(path: "/my_form", page: MyForm.page),
@@ -20,6 +21,7 @@ class AppRouter extends $AppRouter {
           initial: true
       ),
       AutoRoute(path: "/login", page: LoginRoute.page),
+      AutoRoute(path: "/login1", page: LoginRoute.page),
     ];
   }
 }

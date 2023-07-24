@@ -11,6 +11,7 @@ import 'package:get_it/get_it.dart';
 import 'presentation/theme_cubit.dart';
 
 void main() {
+
   final getIt = GetIt.instance;
   getIt.registerSingleton<AppRouter>(AppRouter());
 

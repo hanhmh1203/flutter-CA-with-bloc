@@ -33,33 +33,39 @@ double translateX(
 }
 
 double getRatioX(
-  Size canvasSize,
-  Size imageSize,
+  Size previewCameraSize,
+  Size boxViewCameraSize,
   InputImageRotation rotation,
 ) {
   switch (rotation) {
     case InputImageRotation.rotation90deg:
-      return (Platform.isIOS ? imageSize.width : imageSize.height) /
-          canvasSize.width;
+      print("hanhmh1203 getRatioX 1");
+      // return (Platform.isIOS ? previewCameraSize.height : previewCameraSize.width) /
+      //     boxViewCameraSize.width;
+      return previewCameraSize.height / boxViewCameraSize.width;
     case InputImageRotation.rotation270deg:
-      return canvasSize.width -
-          (Platform.isIOS ? imageSize.width : imageSize.height) /
-              canvasSize.width;
+      print("hanhmh1203 getRatioX 2");
+      return boxViewCameraSize.width -
+          (Platform.isIOS
+                  ? previewCameraSize.width
+                  : previewCameraSize.height) /
+              boxViewCameraSize.width;
     case InputImageRotation.rotation0deg:
     case InputImageRotation.rotation180deg:
-      return imageSize.width / canvasSize.width;
+      print("hanhmh1203 getRatioX 3");
+      return previewCameraSize.width / boxViewCameraSize.width;
   }
 }
 
-double getRatioY(Size canvasSize, Size imageSize, InputImageRotation rotation) {
+double getRatioY(Size previewCameraSize, Size boxViewCameraSize,
+    InputImageRotation rotation) {
   switch (rotation) {
     case InputImageRotation.rotation90deg:
     case InputImageRotation.rotation270deg:
-      return (Platform.isIOS ? imageSize.height : imageSize.width) /
-          canvasSize.height;
+      return previewCameraSize.width / boxViewCameraSize.height;
     case InputImageRotation.rotation0deg:
     case InputImageRotation.rotation180deg:
-      return imageSize.height / canvasSize.height;
+      return previewCameraSize.height / boxViewCameraSize.height;
   }
 }
 

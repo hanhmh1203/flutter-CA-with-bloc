@@ -33,16 +33,17 @@ class _TextRecognizerViewState extends State<TextRecognizerView> {
 
   @override
   Widget build(BuildContext context) {
-    // if (Platform.isAndroid) {
-    //   return DetectorView(
-    //     title: 'Text Detector',
-    //     customPaint: _customPaint,
-    //     text: _text,
-    //     onImage: _processImage,
-    //     initialCameraLensDirection: _cameraLensDirection,
-    //     onCameraLensDirectionChanged: (value) => _cameraLensDirection = value,
-    //   );
-    // }
+    if (Platform.isAndroid) {
+      return DetectorView(
+        title: 'Text Detector',
+        customPaint: _customPaint,
+        isPause: _isBusy,
+        text: _text,
+        onImage: _processImage,
+        initialCameraLensDirection: _cameraLensDirection,
+        onCameraLensDirectionChanged: (value) => _cameraLensDirection = value,
+      );
+    }
     return DetectorView(
       title: 'Text Detector',
       customPaint: _customPaint,
@@ -91,9 +92,12 @@ class _TextRecognizerViewState extends State<TextRecognizerView> {
       _text = '';
     });
     final recognizedText = await _textRecognizer.processImage(inputImage);
-    String result = Platform.isAndroid
-        ? DetectorHelper.checkAllBlock(recognizedText)
-        : DetectorHelper.checkInSideBlock(recognizedText, boxView,isVertical: false);
+    // String result = Platform.isAndroid
+    //     ? DetectorHelper.checkAllBlock(recognizedText)
+    //     : DetectorHelper.checkInSideBlock(recognizedText, boxView,
+    //         isVertical: false);
+    String result = DetectorHelper.checkInSideBlock(recognizedText, boxView,
+        isVertical: false);
     if (result.isNotEmpty) {
       _showBottomSheet(context, result);
     } else {
